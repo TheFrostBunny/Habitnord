@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'repository/habit_repository.dart';
 import 'services/storage_service.dart';
 import 'models/habit.dart';
+import 'widgets/calendar_view.dart';
 
 void main() {
   runApp(const HabitNordApp());
@@ -90,12 +91,28 @@ class _HabitTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(backgroundColor: _colorFromHex(habit.colorHex)),
       title: Text(habit.name),
-      trailing: IconButton(
-        icon: Icon(
-          completedToday ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: completedToday ? Colors.green : null,
-        ),
-        onPressed: () => repo.toggleCompletion(habit, DateTime.now()),
+      subtitle: Text('Trykk for kalender'),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => _HabitCalendarScreen(habit: habit)),
+        );
+      },
+      trailing: PopupMenuButton<String>(
+        onSelected: (value) async {
+          if (value == 'edit') {
+            await _showEditHabitDialog(context, habit);
+          } else if (value == 'delete') {
+            await repo.deleteHabit(habit);
+          } else if (value == 'toggle') {
+            await repo.toggleCompletion(habit, DateTime.now());
+          }
+        },
+        itemBuilder:
+            (ctx) => const [
+              PopupMenuItem(value: 'toggle', child: Text('Marker i dag')),
+              PopupMenuItem(value: 'edit', child: Text('Rediger')),
+              PopupMenuItem(value: 'delete', child: Text('Slett')),
+            ],
       ),
     );
   }
@@ -108,30 +125,63 @@ class ContributionsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final end = DateTime.now();
     final start = end.subtract(const Duration(days: 7 * 52));
+    final repo = context.watch<HabitRepository>();
+    final habits = repo.habits;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            'Din contributions-graf',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        for (final h in habits) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              'Bidrag for: ${h.name}',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-          child: _ContributionsHeatmap(start: start, end: end),
-        ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: _ContributionsHeatmap(start: start, end: end, habitId: h.id),
+          ),
+          const SizedBox(height: 16),
+        ],
       ],
     );
   }
 }
 
+class _HabitCalendarScreen extends StatelessWidget {
+  final Habit habit;
+  const _HabitCalendarScreen({required this.habit});
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    return Scaffold(
+      appBar: AppBar(title: Text(habit.name)),
+      body: ListView(
+        children: [
+          MonthlyCalendarView(
+            habit: habit,
+            month: DateTime(now.year, now.month),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Comparison UI removed per request
+
 class _ContributionsHeatmap extends StatelessWidget {
   final DateTime start;
   final DateTime end;
-  const _ContributionsHeatmap({required this.start, required this.end});
+  final String? habitId;
+  const _ContributionsHeatmap({
+    required this.start,
+    required this.end,
+    this.habitId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -156,7 +206,14 @@ class _ContributionsHeatmap extends StatelessWidget {
       cursor = cursor.add(const Duration(days: 7));
     }
 
-    final perDay = repo.completionsPerDay(start, end);
+    // Build per-day counts filtered by habit when provided
+    final Map<DateTime, int> perDay = {};
+    for (final l in repo.logs) {
+      if (habitId != null && l.habitId != habitId) continue;
+      if (l.date.isBefore(start) || l.date.isAfter(end)) continue;
+      final key = DateTime(l.date.year, l.date.month, l.date.day);
+      perDay[key] = (perDay[key] ?? 0) + 1;
+    }
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -269,6 +326,77 @@ Future<void> _showAddHabitDialog(BuildContext context) async {
                 final name = nameController.text.trim();
                 if (name.isNotEmpty) {
                   await repo.addHabit(name, selectedHex);
+                  // ignore: use_build_context_synchronously
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Lagre'),
+            ),
+          ],
+        ),
+  );
+}
+
+Future<void> _showEditHabitDialog(BuildContext context, Habit habit) async {
+  final nameController = TextEditingController(text: habit.name);
+  final colors = _habitNordPalette.swatches;
+  String selectedHex = habit.colorHex;
+  final repo = context.read<HabitRepository>();
+  await showDialog(
+    context: context,
+    builder:
+        (ctx) => AlertDialog(
+          title: const Text('Rediger vane'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Navn'),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final hex in colors)
+                    GestureDetector(
+                      onTap: () {
+                        selectedHex = hex;
+                      },
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: _colorFromHex(hex),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color:
+                                hex == selectedHex
+                                    ? Colors.black
+                                    : Colors.transparent,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Avbryt'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final name = nameController.text.trim();
+                if (name.isNotEmpty) {
+                  await repo.updateHabit(
+                    habit,
+                    name: name,
+                    colorHex: selectedHex,
+                  );
                   // ignore: use_build_context_synchronously
                   Navigator.pop(ctx);
                 }
