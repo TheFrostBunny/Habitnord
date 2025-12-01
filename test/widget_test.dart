@@ -13,7 +13,7 @@ import 'package:habitnord/main.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const HabitNordApp());
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
@@ -26,5 +26,16 @@ void main() {
     // Verify that our counter has incremented.
     expect(find.text('0'), findsNothing);
     expect(find.text('1'), findsOneWidget);
+  });
+  testWidgets('App renders HabitNord home', (WidgetTester tester) async {
+    await tester.pumpWidget(const HabitNordApp());
+
+    // Verify app bar title exists
+    expect(find.text('HabitNord'), findsOneWidget);
+
+    // Add habit dialog opens
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+    expect(find.text('Ny vane'), findsOneWidget);
   });
 }

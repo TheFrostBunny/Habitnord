@@ -1,122 +1,318 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'repository/habit_repository.dart';
+import 'services/storage_service.dart';
+import 'models/habit.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const HabitNordApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class HabitNordApp extends StatelessWidget {
+  const HabitNordApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+    final palette = _habitNordPalette;
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => HabitRepository(StorageService())..load(),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'HabitNord',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: palette.primary),
+          useMaterial3: true,
+          scaffoldBackgroundColor: Colors.white,
+        ),
+        home: const HabitsHomePage(),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+class HabitsHomePage extends StatelessWidget {
+  const HabitsHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final repo = context.watch<HabitRepository>();
+    final habits = repo.habits;
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      appBar: AppBar(title: const Text('HabitNord')),
+      body: ListView(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Dine vaner',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () async {
+                    await _showAddHabitDialog(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+          ...habits.map((h) => _HabitTile(habit: h)),
+          const SizedBox(height: 16),
+          const ContributionsSection(),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+    );
+  }
+}
+
+class _HabitTile extends StatelessWidget {
+  final Habit habit;
+  const _HabitTile({required this.habit});
+
+  @override
+  Widget build(BuildContext context) {
+    final repo = context.watch<HabitRepository>();
+    final today = DateTime.now();
+    final completedToday = repo.logs.any(
+      (l) =>
+          l.habitId == habit.id &&
+          l.date.year == today.year &&
+          l.date.month == today.month &&
+          l.date.day == today.day,
+    );
+    return ListTile(
+      leading: CircleAvatar(backgroundColor: _colorFromHex(habit.colorHex)),
+      title: Text(habit.name),
+      trailing: IconButton(
+        icon: Icon(
+          completedToday ? Icons.check_circle : Icons.radio_button_unchecked,
+          color: completedToday ? Colors.green : null,
+        ),
+        onPressed: () => repo.toggleCompletion(habit, DateTime.now()),
+      ),
+    );
+  }
+}
+
+class ContributionsSection extends StatelessWidget {
+  const ContributionsSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final end = DateTime.now();
+    final start = end.subtract(const Duration(days: 7 * 52));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'Din contributions-graf',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: _ContributionsHeatmap(start: start, end: end),
+        ),
+      ],
+    );
+  }
+}
+
+class _ContributionsHeatmap extends StatelessWidget {
+  final DateTime start;
+  final DateTime end;
+  const _ContributionsHeatmap({required this.start, required this.end});
+
+  @override
+  Widget build(BuildContext context) {
+    final repo = context.watch<HabitRepository>();
+    final palette = _habitNordPalette;
+    // Prepare weeks columns similar to GitHub
+    final columns = <List<DateTime>>[];
+    var cursor = start;
+    // Align start to previous Sunday
+    cursor = cursor.subtract(Duration(days: cursor.weekday % 7));
+    while (!cursor.isAfter(end)) {
+      final week = <DateTime>[];
+      for (int i = 0; i < 7; i++) {
+        final day = cursor.add(Duration(days: i));
+        if (!day.isBefore(start) && !day.isAfter(end)) {
+          week.add(day);
+        } else {
+          week.add(day);
+        }
+      }
+      columns.add(week);
+      cursor = cursor.add(const Duration(days: 7));
+    }
+
+    final perDay = repo.completionsPerDay(start, end);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final week in columns)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 1.0),
+              child: Column(
+                children: [
+                  for (final day in week)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 1.0),
+                      child: _HeatCell(
+                        date: day,
+                        count:
+                            perDay[DateTime(day.year, day.month, day.day)] ?? 0,
+                        palette: palette,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeatCell extends StatelessWidget {
+  final DateTime date;
+  final int count;
+  final _Palette palette;
+  const _HeatCell({
+    required this.date,
+    required this.count,
+    required this.palette,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _colorForCount(count, palette);
+    return Tooltip(
+      message: '${date.year}-${date.month}-${date.day}: $count',
+      child: Container(
+        width: 12,
+        height: 12,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> _showAddHabitDialog(BuildContext context) async {
+  final nameController = TextEditingController();
+  final colors = _habitNordPalette.swatches;
+  String selectedHex = _habitNordPalette.primaryHex;
+  final repo = context.read<HabitRepository>();
+  await showDialog(
+    context: context,
+    builder:
+        (ctx) => AlertDialog(
+          title: const Text('Ny vane'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Navn'),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final hex in colors)
+                    GestureDetector(
+                      onTap: () {
+                        selectedHex = hex;
+                      },
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: _colorFromHex(hex),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color:
+                                hex == selectedHex
+                                    ? Colors.black
+                                    : Colors.transparent,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Avbryt'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final name = nameController.text.trim();
+                if (name.isNotEmpty) {
+                  await repo.addHabit(name, selectedHex);
+                  // ignore: use_build_context_synchronously
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Lagre'),
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
-  }
+  );
+}
+
+class _Palette {
+  final Color primary;
+  final String primaryHex;
+  final List<String> swatches;
+  const _Palette({
+    required this.primary,
+    required this.primaryHex,
+    required this.swatches,
+  });
+}
+
+const _habitNordPalette = _Palette(
+  primary: Color(0xFF1E3A8A),
+  primaryHex: '1E3A8A',
+  swatches: [
+    '1E3A8A', // deep blue
+    '2563EB', // blue
+    '10B981', // teal
+    'F59E0B', // amber
+    'EF4444', // red
+    '8B5CF6', // violet
+  ],
+);
+
+Color _colorFromHex(String hex) {
+  final v = hex.replaceAll('#', '');
+  return Color(int.parse('FF$v', radix: 16));
+}
+
+Color _colorForCount(int count, _Palette palette) {
+  if (count <= 0) return const Color(0xFFE5E7EB); // gray-200
+  if (count == 1) return const Color(0xFFBFDBFE); // blue-200
+  if (count <= 3) return const Color(0xFF60A5FA); // blue-400
+  if (count <= 6) return const Color(0xFF2563EB); // blue-600
+  return const Color(0xFF1E3A8A); // blue-800
 }
