@@ -11,21 +11,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:habitnord/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('HabitNord home renders and add habit dialog opens', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const HabitNordApp());
+    expect(find.text('HabitNord'), findsOneWidget);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
+    // Open add habit dialog
     await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.text('Ny vane'), findsOneWidget);
   });
   testWidgets('App renders HabitNord home', (WidgetTester tester) async {
     await tester.pumpWidget(const HabitNordApp());

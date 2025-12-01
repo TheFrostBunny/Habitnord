@@ -28,9 +28,22 @@ class HabitRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addHabit(String name, String colorHex) async {
+  Future<void> addHabit(
+    String name,
+    String colorHex, {
+    String? description,
+    String? iconName,
+  }) async {
     final id = _generateId();
-    _habits.add(Habit(id: id, name: name, colorHex: colorHex));
+    _habits.add(
+      Habit(
+        id: id,
+        name: name,
+        colorHex: colorHex,
+        description: description,
+        iconName: iconName,
+      ),
+    );
     await _persist();
     notifyListeners();
   }
@@ -39,6 +52,8 @@ class HabitRepository extends ChangeNotifier {
     Habit habit, {
     String? name,
     String? colorHex,
+    String? description,
+    String? iconName,
   }) async {
     final idx = _habits.indexWhere((h) => h.id == habit.id);
     if (idx == -1) return;
@@ -46,6 +61,8 @@ class HabitRepository extends ChangeNotifier {
       id: habit.id,
       name: name ?? habit.name,
       colorHex: colorHex ?? habit.colorHex,
+      description: description ?? habit.description,
+      iconName: iconName ?? habit.iconName,
     );
     await _persist();
     notifyListeners();
