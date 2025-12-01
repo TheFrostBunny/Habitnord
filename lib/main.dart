@@ -85,64 +85,104 @@ class _HabitTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final repo = context.watch<HabitRepository>();
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 12,
-        ),
-        leading: CircleAvatar(
-          backgroundColor: _colorFromHex(habit.colorHex),
-          child: Icon(_iconForHabit(habit.iconName), color: Colors.white),
-        ),
-        title: Text(
-          habit.name,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Column(
+    final base = _colorFromHex(habit.colorHex);
+    final cardBg = const Color(0xFF1A1F2E);
+    final chipBg = Color.fromARGB(
+      255,
+      (base.r * 0.18 + 255 * 0.82).round(),
+      (base.g * 0.18 + 255 * 0.82).round(),
+      (base.b * 0.18 + 255 * 0.82).round(),
+    );
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 12,
+            offset: Offset(0, 6),
+          ),
+        ],
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
-            if ((habit.description ?? '').isNotEmpty)
-              Text(
-                habit.description!,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 12,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: chipBg,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    _iconForHabit(habit.iconName),
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 ),
-              ),
-            const SizedBox(height: 10),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        habit.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if ((habit.description ?? '').isNotEmpty)
+                        Text(
+                          habit.description!,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: () => repo.toggleCompletion(habit, DateTime.now()),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: chipBg,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             _InlineHeatmap(habitId: habit.id, baseHex: habit.colorHex),
           ],
-        ),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => _HabitCalendarScreen(habit: habit),
-            ),
-          );
-        },
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) async {
-            if (value == 'edit') {
-              await _showEditHabitDialog(context, habit);
-            } else if (value == 'delete') {
-              await repo.deleteHabit(habit);
-            } else if (value == 'toggle') {
-              await repo.toggleCompletion(habit, DateTime.now());
-            }
-          },
-          itemBuilder:
-              (ctx) => [
-                const PopupMenuItem(
-                  value: 'toggle',
-                  child: Text('Marker i dag'),
-                ),
-                const PopupMenuItem(value: 'edit', child: Text('Rediger')),
-                const PopupMenuItem(value: 'delete', child: Text('Slett')),
-              ],
         ),
       ),
     );
@@ -399,27 +439,29 @@ class _InlineHeatmap extends StatelessWidget {
       perDay[key] = (perDay[key] ?? 0) + 1;
     }
 
+    final bg = const Color(0xFF0E1424);
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF0B1220),
-        borderRadius: BorderRadius.circular(12),
+        color: bg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
       child: SizedBox(
-        height: 60,
+        height: 72,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
               for (final week in columns)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 3.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       for (final day in week)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 1.0),
+                          padding: const EdgeInsets.symmetric(vertical: 2.0),
                           child: _MiniCell(
                             color: _colorForCount(
                               perDay[DateTime(day.year, day.month, day.day)] ??
@@ -468,11 +510,11 @@ class _MiniCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 6,
-      height: 6,
+      width: 7,
+      height: 7,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(3),
+        borderRadius: BorderRadius.circular(3.5),
       ),
     );
   }
