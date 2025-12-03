@@ -1,4 +1,6 @@
 import "package:flutter/material.dart";
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import 'habit_card.dart';
 import 'translations.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +9,26 @@ import 'app_bar.dart';
 import 'pages/settings_page.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+
+// List all icons used dynamically so Flutter includes them in the build
+final Set<IconData> usedIcons = {
+  Icons.star,
+  Icons.self_improvement,
+  Icons.code,
+  Icons.music_note,
+  Icons.directions_run,
+  Icons.coffee,
+  Icons.book,
+  Icons.fitness_center,
+  Icons.fastfood,
+  Icons.nightlight_round,
+  Icons.water_drop,
+  Icons.sunny,
+  Icons.check_circle,
+  Icons.timer,
+  Icons.directions_bike,
+  Icons.spa,
+};
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,22 +103,27 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> habits = [];
+  late File habitsFile;
 
   @override
   void initState() {
     super.initState();
-    _loadHabits();
+    _initHabitsFile();
+  }
+
+  Future<void> _initHabitsFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+    habitsFile = File('${dir.path}/habits.json');
+    await _loadHabits();
   }
 
   Future<void> _loadHabits() async {
-    final prefs = await SharedPreferences.getInstance();
-    final habitsJson = prefs.getString('habits');
-    if (habitsJson != null) {
-      final decoded = jsonDecode(habitsJson) as List;
+    if (await habitsFile.exists()) {
+      final contents = await habitsFile.readAsString();
+      final decoded = jsonDecode(contents) as List;
       setState(() {
         habits =
             decoded.map<Map<String, dynamic>>((h) {
-              // Restore color and icon from int values
               return {
                 'color': Color(h['color'] as int),
                 'icon': IconData(h['icon'] as int, fontFamily: 'MaterialIcons'),
@@ -108,7 +135,6 @@ class _HomeScreenState extends State<HomeScreen> {
             }).toList();
       });
     } else {
-      // Default habits if none saved
       habits = [
         {
           'color': Colors.purple[400]!,
@@ -157,7 +183,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _saveHabits() async {
-    final prefs = await SharedPreferences.getInstance();
     final encoded = jsonEncode(
       habits
           .map(
@@ -175,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
           )
           .toList(),
     );
-    await prefs.setString('habits', encoded);
+    await habitsFile.writeAsString(encoded);
   }
 
   void _addHabit() async {
@@ -246,6 +271,43 @@ class _HomeScreenState extends State<HomeScreen> {
                       value: Icons.coffee,
                       child: Icon(Icons.coffee),
                     ),
+                    DropdownMenuItem(
+                      value: Icons.book,
+                      child: Icon(Icons.book),
+                    ),
+                    DropdownMenuItem(
+                      value: Icons.fitness_center,
+                      child: Icon(Icons.fitness_center),
+                    ),
+                    DropdownMenuItem(
+                      value: Icons.fastfood,
+                      child: Icon(Icons.fastfood),
+                    ),
+                    DropdownMenuItem(
+                      value: Icons.nightlight_round,
+                      child: Icon(Icons.nightlight_round),
+                    ),
+                    DropdownMenuItem(
+                      value: Icons.water_drop,
+                      child: Icon(Icons.water_drop),
+                    ),
+                    DropdownMenuItem(
+                      value: Icons.sunny,
+                      child: Icon(Icons.sunny),
+                    ),
+                    DropdownMenuItem(
+                      value: Icons.check_circle,
+                      child: Icon(Icons.check_circle),
+                    ),
+                    DropdownMenuItem(
+                      value: Icons.timer,
+                      child: Icon(Icons.timer),
+                    ),
+                    DropdownMenuItem(
+                      value: Icons.directions_bike,
+                      child: Icon(Icons.directions_bike),
+                    ),
+                    DropdownMenuItem(value: Icons.spa, child: Icon(Icons.spa)),
                   ],
                   onChanged:
                       (i) => setState(() {
