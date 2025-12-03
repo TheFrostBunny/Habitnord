@@ -4,5 +4,8 @@
   "theme": "Theme",
   "language":"Language",
   "notifications": "Notifications",
-  "about": "About the app"
+  "about": "About the app",
+  "dark": "Dark",
+  "light": "Light",
+  "system": "System"
 }

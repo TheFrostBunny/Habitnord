@@ -4,5 +4,8 @@
   "theme": "Tema",
   "language":"Språk",
   "notifications": "Varsler",
-  "about": "Om appen"
+  "about": "Om appen",
+  "light": "Lys",
+  "dark": "Mørk",
+  "system": "System"
 }

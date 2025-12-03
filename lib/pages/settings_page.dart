@@ -47,9 +47,6 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _notificationsEnabled = value;
     });
-    // TODO: Her kan du implementere faktisk varsling (f.eks. med flutter_local_notifications)
-    // Eksempel: hvis value == true, aktiver push/local notifications
-    // hvis value == false, deaktiver varsler
   }
 
   @override
@@ -84,21 +81,26 @@ class _SettingsPageState extends State<SettingsPage> {
               title: Text(Translations.text('theme')),
               subtitle: Text(
                 themeMode == ThemeMode.system
-                    ? 'System'
-                    : (isDark ? 'Dark' : 'Light'),
+                    ? Translations.text('system')
+                    : (isDark
+                        ? Translations.text('dark')
+                        : Translations.text('light')),
               ),
               trailing: DropdownButton<ThemeMode>(
                 value: themeMode,
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: ThemeMode.system,
-                    child: Text('System'),
+                    child: Text(Translations.text('system')),
                   ),
                   DropdownMenuItem(
                     value: ThemeMode.light,
-                    child: Text('Light'),
+                    child: Text(Translations.text('light')),
                   ),
-                  DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+                  DropdownMenuItem(
+                    value: ThemeMode.dark,
+                    child: Text(Translations.text('dark')),
+                  ),
                 ],
                 onChanged: (mode) {
                   if (mode != null) themeProvider.setThemeMode(mode);
