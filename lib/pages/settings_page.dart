@@ -1,10 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:habitnord/main.dart';
-import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:habitnord/translations.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  String _selectedLanguage = 'no';
+  bool _notificationsEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrefs();
+  }
+
+  Future<void> _loadPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lang = prefs.getString('language') ?? 'no';
+    final notif = prefs.getBool('notifications') ?? true;
+    await Translations.load(lang);
+    setState(() {
+      _selectedLanguage = lang;
+      _notificationsEnabled = notif;
+    });
+  }
+
+  Future<void> _changeLanguage(String lang) async {
+    await Translations.load(lang);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', lang);
+    setState(() {
+      _selectedLanguage = lang;
+    });
+  }
+
+  Future<void> _changeNotifications(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notifications', value);
+    setState(() {
+      _notificationsEnabled = value;
+    });
+    // TODO: Her kan du implementere faktisk varsling (f.eks. med flutter_local_notifications)
+    // Eksempel: hvis value == true, aktiver push/local notifications
+    // hvis value == false, deaktiver varsler
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,8 +65,23 @@ class SettingsPage extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             ListTile(
+              leading: const Icon(Icons.language),
+              title: Text(Translations.text('language')),
+              trailing: DropdownButton<String>(
+                value: _selectedLanguage,
+                items: const [
+                  DropdownMenuItem(value: 'no', child: Text('Norsk')),
+                  DropdownMenuItem(value: 'en', child: Text('English')),
+                ],
+                onChanged: (lang) {
+                  if (lang != null) _changeLanguage(lang);
+                },
+              ),
+            ),
+            const Divider(),
+            ListTile(
               leading: const Icon(Icons.color_lens),
-              title: const Text('Theme'),
+              title: Text(Translations.text('theme')),
               subtitle: Text(
                 themeMode == ThemeMode.system
                     ? 'System'
@@ -46,14 +107,14 @@ class SettingsPage extends StatelessWidget {
             ),
             const Divider(),
             SwitchListTile(
-              value: true,
-              onChanged: (_) {},
-              title: const Text('Notifications'),
+              value: _notificationsEnabled,
+              onChanged: (val) => _changeNotifications(val),
+              title: Text(Translations.text('notifications')),
             ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: const Text('About'),
+              title: Text(Translations.text('about')),
               subtitle: const Text('HabitNord v0.0.1'),
               onTap: () {},
             ),

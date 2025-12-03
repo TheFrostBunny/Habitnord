@@ -1,10 +1,17 @@
 import "package:flutter/material.dart";
+import 'translations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app_bar.dart';
 import 'pages/settings_page.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final lang = prefs.getString('language') ?? 'no';
+  await Translations.load(lang);
   runApp(const HabitNordRoot());
 }
 
@@ -64,17 +71,22 @@ class HabitNordApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
         title: 'HabitNord',
         leadingIcon: Icons.settings,
-        onLeadingTap: () {
-          Navigator.of(context).push(
+        onLeadingTap: () async {
+          await Navigator.of(context).push(
             PageRouteBuilder(
               pageBuilder:
                   (context, animation, secondaryAnimation) =>
@@ -99,9 +111,15 @@ class HomeScreen extends StatelessWidget {
               },
             ),
           );
+          setState(() {});
         },
       ),
-      body: const Center(child: Text('Velkommen til HabitNord')),
+      body: Center(child: Text(Translations.text('welcome'))),
     );
   }
+}
+
+Future<Map<String, dynamic>> loadTranslations(String locale) async {
+  final data = await rootBundle.loadString('assets/i18n/$locale.json');
+  return jsonDecode(data);
 }
