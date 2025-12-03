@@ -80,48 +80,103 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Map<String, dynamic>> habits = [
-    {
-      'color': Colors.purple[400]!,
-      'icon': Icons.self_improvement,
-      'title': 'Meditation',
-      'subtitle': 'Meditate for 10 minutes',
-      'checked': true,
-      'heatmapColor': Colors.purpleAccent,
-    },
-    {
-      'color': Colors.amber[700]!,
-      'icon': Icons.code,
-      'title': 'Code Daily',
-      'subtitle': 'Write code for at least 1 hour',
-      'checked': true,
-      'heatmapColor': Colors.amberAccent,
-    },
-    {
-      'color': Colors.blue[400]!,
-      'icon': Icons.music_note,
-      'title': 'Play Drums',
-      'subtitle': 'Exercise drumming for at least 30 minutes',
-      'checked': true,
-      'heatmapColor': Colors.blueAccent,
-    },
-    {
-      'color': Colors.green[700]!,
-      'icon': Icons.directions_run,
-      'title': 'Running',
-      'subtitle': 'Go for a jog every other day',
-      'checked': true,
-      'heatmapColor': Colors.greenAccent,
-    },
-    {
-      'color': Colors.pink[400]!,
-      'icon': Icons.coffee,
-      'title': 'Limit Coffee Intake',
-      'subtitle': 'Drink a maximum of two cups a day',
-      'checked': true,
-      'heatmapColor': Colors.pinkAccent,
-    },
-  ];
+  List<Map<String, dynamic>> habits = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHabits();
+  }
+
+  Future<void> _loadHabits() async {
+    final prefs = await SharedPreferences.getInstance();
+    final habitsJson = prefs.getString('habits');
+    if (habitsJson != null) {
+      final decoded = jsonDecode(habitsJson) as List;
+      setState(() {
+        habits =
+            decoded.map<Map<String, dynamic>>((h) {
+              // Restore color and icon from int values
+              return {
+                'color': Color(h['color'] as int),
+                'icon': IconData(h['icon'] as int, fontFamily: 'MaterialIcons'),
+                'title': h['title'],
+                'subtitle': h['subtitle'],
+                'checked': h['checked'],
+                'heatmapColor': Color(h['heatmapColor'] as int),
+              };
+            }).toList();
+      });
+    } else {
+      // Default habits if none saved
+      habits = [
+        {
+          'color': Colors.purple[400]!,
+          'icon': Icons.self_improvement.codePoint,
+          'title': 'Meditation',
+          'subtitle': 'Meditate for 10 minutes',
+          'checked': true,
+          'heatmapColor': Colors.purpleAccent.value,
+        },
+        {
+          'color': Colors.amber[700]!,
+          'icon': Icons.code.codePoint,
+          'title': 'Code Daily',
+          'subtitle': 'Write code for at least 1 hour',
+          'checked': true,
+          'heatmapColor': Colors.amberAccent.value,
+        },
+        {
+          'color': Colors.blue[400]!,
+          'icon': Icons.music_note.codePoint,
+          'title': 'Play Drums',
+          'subtitle': 'Exercise drumming for at least 30 minutes',
+          'checked': true,
+          'heatmapColor': Colors.blueAccent.value,
+        },
+        {
+          'color': Colors.green[700]!,
+          'icon': Icons.directions_run.codePoint,
+          'title': 'Running',
+          'subtitle': 'Go for a jog every other day',
+          'checked': true,
+          'heatmapColor': Colors.greenAccent.value,
+        },
+        {
+          'color': Colors.pink[400]!,
+          'icon': Icons.coffee.codePoint,
+          'title': 'Limit Coffee Intake',
+          'subtitle': 'Drink a maximum of two cups a day',
+          'checked': true,
+          'heatmapColor': Colors.pinkAccent.value,
+        },
+      ];
+      await _saveHabits();
+      setState(() {});
+    }
+  }
+
+  Future<void> _saveHabits() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = jsonEncode(
+      habits
+          .map(
+            (h) => {
+              'color': (h['color'] as Color).value,
+              'icon':
+                  (h['icon'] is IconData)
+                      ? (h['icon'] as IconData).codePoint
+                      : h['icon'],
+              'title': h['title'],
+              'subtitle': h['subtitle'],
+              'checked': h['checked'],
+              'heatmapColor': (h['heatmapColor'] as Color).value,
+            },
+          )
+          .toList(),
+    );
+    await prefs.setString('habits', encoded);
+  }
 
   void _addHabit() async {
     Color color = Colors.blue;
@@ -226,8 +281,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     if (result != null) {
       setState(() {
-        habits.add(result);
+        habits.add({
+          'color': result['color'],
+          'icon': (result['icon'] as IconData).codePoint,
+          'title': result['title'],
+          'subtitle': result['subtitle'],
+          'checked': result['checked'],
+          'heatmapColor': (result['heatmapColor'] as Color).value,
+        });
       });
+      await _saveHabits();
     }
   }
 
@@ -274,16 +337,26 @@ class _HomeScreenState extends State<HomeScreen> {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: HabitCard(
-              color: habit['color'],
-              icon: habit['icon'],
+              color:
+                  habit['color'] is Color
+                      ? habit['color']
+                      : Color(habit['color']),
+              icon:
+                  habit['icon'] is IconData
+                      ? habit['icon']
+                      : IconData(habit['icon'], fontFamily: 'MaterialIcons'),
               title: habit['title'],
               subtitle: habit['subtitle'],
               checked: habit['checked'],
-              heatmapColor: habit['heatmapColor'],
+              heatmapColor:
+                  habit['heatmapColor'] is Color
+                      ? habit['heatmapColor']
+                      : Color(habit['heatmapColor']),
               onCheck: (val) {
                 setState(() {
                   habits[index]['checked'] = val;
                 });
+                _saveHabits();
               },
             ),
           );
