@@ -57,7 +57,10 @@ class _SettingsPageState extends State<SettingsPage> {
     return PopScope(
       canPop: true,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Settings'), centerTitle: false),
+        appBar: AppBar(
+          title: Text(Translations.text('settings')),
+          centerTitle: false,
+        ),
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
