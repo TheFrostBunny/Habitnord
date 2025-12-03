@@ -13,12 +13,8 @@ class SettingsPage extends StatelessWidget {
     final isDark = themeMode == ThemeMode.dark;
     return PopScope(
       canPop: true,
-      onPopInvoked: (didPop) => _onPopInvoked(didPop, context),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Settings'),
-          centerTitle: false,
-        ),
+        appBar: AppBar(title: const Text('Settings'), centerTitle: false),
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -41,10 +37,7 @@ class SettingsPage extends StatelessWidget {
                     value: ThemeMode.light,
                     child: Text('Light'),
                   ),
-                  DropdownMenuItem(
-                    value: ThemeMode.dark,
-                    child: Text('Dark'),
-                  ),
+                  DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
                 ],
                 onChanged: (mode) {
                   if (mode != null) themeProvider.setThemeMode(mode);
@@ -61,17 +54,12 @@ class SettingsPage extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.info_outline),
               title: const Text('About'),
-              subtitle: const Text('HabitNord v1.0.0'),
+              subtitle: const Text('HabitNord v0.0.1'),
               onTap: () {},
             ),
           ],
         ),
       ),
     );
-  }
-  void _onPopInvoked(bool didPop, BuildContext context) {
-    // Her kan du legge til din egen logikk når brukeren går tilbake
-    // didPop == true hvis siden ble poppet, false hvis det ble blokkert
-    print('Back gesture: $didPop'); // Denne linjen viser at callbacken fungerer
   }
 }

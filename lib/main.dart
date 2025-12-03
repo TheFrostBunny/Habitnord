@@ -2,7 +2,7 @@ import "package:flutter/material.dart";
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app_bar.dart';
-import 'settings_page.dart';
+import 'pages/settings_page.dart';
 
 void main() {
   runApp(const HabitNordRoot());
@@ -20,7 +20,10 @@ class ThemeProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final themeString = prefs.getString('themeMode');
     if (themeString != null) {
-      _themeMode = ThemeMode.values.firstWhere((m) => m.toString() == themeString, orElse: () => ThemeMode.system);
+      _themeMode = ThemeMode.values.firstWhere(
+        (m) => m.toString() == themeString,
+        orElse: () => ThemeMode.system,
+      );
       notifyListeners();
     }
   }
