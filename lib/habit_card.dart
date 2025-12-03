@@ -10,7 +10,7 @@ class HabitCard extends StatelessWidget {
   final ValueChanged<bool> onCheck;
 
   const HabitCard({
-    Key? key,
+    super.key,
     required this.color,
     required this.icon,
     required this.title,
@@ -18,7 +18,7 @@ class HabitCard extends StatelessWidget {
     required this.checked,
     required this.heatmapColor,
     required this.onCheck,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

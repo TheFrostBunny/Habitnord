@@ -331,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     'title': title,
                     'subtitle': subtitle,
                     'checked': false,
-                    'heatmapColor': color,
+                    'heatmapColor': color.toARGB32(),
                   });
                 }
               },
@@ -349,7 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'title': result['title'],
           'subtitle': result['subtitle'],
           'checked': result['checked'],
-          'heatmapColor': (result['heatmapColor'] as Color).value,
+          'heatmapColor': result['heatmapColor'],
         });
       });
       await _saveHabits();
