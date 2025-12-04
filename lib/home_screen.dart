@@ -4,6 +4,8 @@ import 'habit_storage.dart';
 import 'app_bar.dart';
 import 'pages/settings_page.dart';
 import 'hooks/translations.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> habits = [];
+  Map<int, List<DateTime>> habitDates = {};
   final HabitStorage habitStorage = HabitStorage();
   bool isLoading = true;
 
@@ -21,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadHabits();
+    _loadHabitDates();
   }
 
   Future<void> _loadHabits() async {
@@ -63,11 +67,44 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _saveHabits() async {
     await habitStorage.saveHabits(habits);
+    // Lagre habitDates også
+    // Konverter habitDates til en serialiserbar form
+    final datesMap = habitDates.map((key, value) => MapEntry(
+      key.toString(),
+      value.map((d) => d.toIso8601String()).toList(),
+    ));
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('habitDates', jsonEncode(datesMap));
+  }
+
+  Future<void> _loadHabitDates() async {
+    final prefs = await SharedPreferences.getInstance();
+    final datesJson = prefs.getString('habitDates');
+    if (datesJson != null) {
+      final decoded = jsonDecode(datesJson) as Map<String, dynamic>;
+      habitDates = decoded.map((key, value) => MapEntry(
+        int.parse(key),
+        (value as List).map((s) => DateTime.parse(s)).toList(),
+      ));
+    }
   }
 
   void _toggleHabitChecked(int index) {
     setState(() {
+      final today = DateTime.now();
+      final todayDate = DateTime(today.year, today.month, today.day);
       habits[index]['checked'] = !(habits[index]['checked'] as bool);
+      habitDates.putIfAbsent(index, () => []);
+      if (habits[index]['checked']) {
+        final alreadyLogged = habitDates[index]!.any((d) =>
+          d.year == todayDate.year && d.month == todayDate.month && d.day == todayDate.day);
+        if (!alreadyLogged) {
+          habitDates[index]!.add(todayDate);
+        }
+      } else {
+        habitDates[index]!.removeWhere((d) =>
+          d.year == todayDate.year && d.month == todayDate.month && d.day == todayDate.day);
+      }
     });
     _saveHabits();
   }
@@ -176,6 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onDelete: () async {
                     setState(() {
                       habits.removeAt(index);
+                      habitDates.remove(index);
                     });
                     await _saveHabits();
                   },
@@ -237,6 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       await _saveHabits();
                     }
                   },
+                  dates: habitDates[index] ?? [],
                 );
               },
             ),
