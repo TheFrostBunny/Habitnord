@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'hooks/translations.dart';
 
 class HabitCard extends StatelessWidget {
   final Color color;
@@ -8,6 +9,7 @@ class HabitCard extends StatelessWidget {
   final bool checked;
   final Color heatmapColor;
   final ValueChanged<bool> onCheck;
+  final VoidCallback? onDelete;
 
   const HabitCard({
     super.key,
@@ -18,6 +20,7 @@ class HabitCard extends StatelessWidget {
     required this.checked,
     required this.heatmapColor,
     required this.onCheck,
+    this.onDelete,
   });
 
   @override
@@ -26,6 +29,39 @@ class HabitCard extends StatelessWidget {
       color: color.withValues(alpha: 0.15),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
+        onLongPress:
+            onDelete != null
+                ? () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(
+                                Icons.delete,
+                                color: Colors.red,
+                              ),
+                              title: Text(Translations.text('delete_habit')),
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                onDelete!();
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.close),
+                              title: Text(Translations.text('cancel')),
+                              onTap: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                }
+                : null,
         leading: CircleAvatar(
           backgroundColor: color,
           child: Icon(icon, color: Colors.white),

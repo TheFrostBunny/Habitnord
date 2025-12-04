@@ -7,5 +7,10 @@
   "about": "Om appen",
   "light": "Lys",
   "dark": "Mørk",
-  "system": "System"
+  "system": "System",
+  "delete_habit": "Fjern vane",
+  "cancel": "Avbryt",
+  "add_habit": "Legg til vane",
+  "title": "Tittel",
+  "description": "Beskrivelse"
 }

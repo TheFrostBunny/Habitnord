@@ -3,6 +3,7 @@ import 'habit_card.dart';
 import 'habit_storage.dart';
 import 'app_bar.dart';
 import 'pages/settings_page.dart';
+import 'hooks/translations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -109,19 +110,18 @@ class _HomeScreenState extends State<HomeScreen> {
             context: context,
             builder: (context) {
               return AlertDialog(
-                title: const Text('Add Habit'),
+                title: Text(Translations.text('add_habit')),
                 content: SingleChildScrollView(
                   child: Column(
                     children: [
                       TextField(
-                        decoration: const InputDecoration(labelText: 'Title'),
+                        decoration: InputDecoration(labelText: Translations.text('title')),
                         onChanged: (v) => title = v,
                       ),
                       TextField(
-                        decoration: const InputDecoration(labelText: 'Description'),
+                        decoration: InputDecoration(labelText: Translations.text('description')),
                         onChanged: (v) => subtitle = v,
                       ),
-                      // You can add dropdowns for color and icon here
                     ],
                   ),
                 ),
@@ -173,6 +173,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   checked: habit['checked'],
                   heatmapColor: habit['heatmapColor'],
                   onCheck: (val) => _toggleHabitChecked(index),
+                  onDelete: () async {
+                    setState(() {
+                      habits.removeAt(index);
+                    });
+                    await _saveHabits();
+                  },
                 );
               },
             ),
