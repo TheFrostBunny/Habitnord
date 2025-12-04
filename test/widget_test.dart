@@ -14,7 +14,7 @@ void main() {
   testWidgets('HabitNord home renders and add habit dialog opens', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const HabitNordApp());
+    await tester.pumpWidget(const HabitNordRoot());
     expect(find.text('HabitNord'), findsOneWidget);
 
     // Open add habit dialog
@@ -23,7 +23,7 @@ void main() {
     expect(find.text('Ny vane'), findsOneWidget);
   });
   testWidgets('App renders HabitNord home', (WidgetTester tester) async {
-    await tester.pumpWidget(const HabitNordApp());
+    await tester.pumpWidget(const HabitNordRoot());
 
     // Verify app bar title exists
     expect(find.text('HabitNord'), findsOneWidget);

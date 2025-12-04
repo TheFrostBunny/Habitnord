@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:habitnord/main.dart';
+import '../theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:habitnord/translations.dart';
+import 'package:habitnord/hooks/translations.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
