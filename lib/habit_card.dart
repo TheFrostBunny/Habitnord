@@ -10,6 +10,7 @@ class HabitCard extends StatelessWidget {
   final Color heatmapColor;
   final ValueChanged<bool> onCheck;
   final VoidCallback? onDelete;
+  final VoidCallback? onEdit;
 
   const HabitCard({
     super.key,
@@ -21,6 +22,7 @@ class HabitCard extends StatelessWidget {
     required this.heatmapColor,
     required this.onCheck,
     this.onDelete,
+    this.onEdit,
   });
 
   @override
@@ -29,39 +31,43 @@ class HabitCard extends StatelessWidget {
       color: color.withValues(alpha: 0.15),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
-        onLongPress:
-            onDelete != null
-                ? () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return SafeArea(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListTile(
-                              leading: const Icon(
-                                Icons.delete,
-                                color: Colors.red,
-                              ),
-                              title: Text(Translations.text('delete_habit')),
-                              onTap: () {
-                                Navigator.of(context).pop();
-                                onDelete!();
-                              },
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.close),
-                              title: Text(Translations.text('cancel')),
-                              onTap: () => Navigator.of(context).pop(),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                }
-                : null,
+        onLongPress: () {
+          showModalBottomSheet(
+            context: context,
+            builder: (context) {
+              return SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onEdit != null)
+                      ListTile(
+                        leading: const Icon(Icons.edit, color: Colors.blue),
+                        title: Text(Translations.text('edit_habit')),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          onEdit!();
+                        },
+                      ),
+                    if (onDelete != null)
+                      ListTile(
+                        leading: const Icon(Icons.delete, color: Colors.red),
+                        title: Text(Translations.text('delete_habit')),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          onDelete!();
+                        },
+                      ),
+                    ListTile(
+                      leading: const Icon(Icons.close),
+                      title: Text(Translations.text('cancel')),
+                      onTap: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
         leading: CircleAvatar(
           backgroundColor: color,
           child: Icon(icon, color: Colors.white),

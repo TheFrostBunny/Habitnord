@@ -7,10 +7,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:habitnord/hooks/translations.dart';
 
 import 'package:habitnord/main.dart';
 
 void main() {
+  setUpAll(() async {
+    await Translations.load('en');
+  });
+
   testWidgets('HabitNord home renders and add habit dialog opens', (
     WidgetTester tester,
   ) async {

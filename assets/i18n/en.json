@@ -12,5 +12,6 @@
   "cancel": "Cancel",
   "add_habit": "Add Habit",
   "title": "Title",
-  "description": "Description"
+  "description": "Description",
+  "edit_habit": "Edit Habit"
 }

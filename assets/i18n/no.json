@@ -12,5 +12,6 @@
   "cancel": "Avbryt",
   "add_habit": "Legg til vane",
   "title": "Tittel",
-  "description": "Beskrivelse"
+  "description": "Beskrivelse",
+  "edit_habit": "Rediger vane"
 }

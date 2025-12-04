@@ -179,6 +179,64 @@ class _HomeScreenState extends State<HomeScreen> {
                     });
                     await _saveHabits();
                   },
+                  onEdit: () async {
+                    String title = habit['title'];
+                    String subtitle = habit['subtitle'];
+                    Color color = habit['color'];
+                    IconData icon = habit['icon'];
+                    final result = await showDialog<Map<String, dynamic>>(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('Rediger vane'),
+                          content: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                TextField(
+                                  decoration: const InputDecoration(labelText: 'Title'),
+                                  controller: TextEditingController(text: title),
+                                  onChanged: (v) => title = v,
+                                ),
+                                TextField(
+                                  decoration: const InputDecoration(labelText: 'Description'),
+                                  controller: TextEditingController(text: subtitle),
+                                  onChanged: (v) => subtitle = v,
+                                ),
+                                // Du kan legge til dropdowns for farge og ikon her
+                              ],
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Avbryt'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                if (title.isNotEmpty && subtitle.isNotEmpty) {
+                                  Navigator.of(context).pop({
+                                    'color': color,
+                                    'icon': icon,
+                                    'title': title,
+                                    'subtitle': subtitle,
+                                    'checked': habit['checked'],
+                                    'heatmapColor': color,
+                                  });
+                                }
+                              },
+                              child: const Text('Lagre'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    if (result != null) {
+                      setState(() {
+                        habits[index] = result;
+                      });
+                      await _saveHabits();
+                    }
+                  },
                 );
               },
             ),
