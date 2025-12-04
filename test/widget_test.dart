@@ -20,7 +20,7 @@ void main() {
     // Open add habit dialog
     await tester.tap(find.byIcon(Icons.add));
     await tester.pumpAndSettle();
-    expect(find.text('Ny vane'), findsOneWidget);
+    expect(find.text('Add Habit'), findsOneWidget);
   });
   testWidgets('App renders HabitNord home', (WidgetTester tester) async {
     await tester.pumpWidget(const HabitNordRoot());
@@ -31,6 +31,6 @@ void main() {
     // Add habit dialog opens
     await tester.tap(find.byIcon(Icons.add));
     await tester.pumpAndSettle();
-    expect(find.text('Ny vane'), findsOneWidget);
+    expect(find.text('Add Habit'), findsOneWidget);
   });
 }
