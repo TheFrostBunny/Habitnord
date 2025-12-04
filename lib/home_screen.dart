@@ -4,6 +4,7 @@ import 'habit_storage.dart';
 import 'app_bar.dart';
 import 'pages/settings_page.dart';
 import 'hooks/translations.dart';
+import 'habit_storage.dart' show usedIcons;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -142,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
           String title = '';
           String subtitle = '';
           Color color = Colors.blue;
-          IconData icon = Icons.star;
+          IconData icon = usedIcons[0];
           final result = await showDialog<Map<String, dynamic>>(
             context: context,
             builder: (context) {
@@ -158,6 +159,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       TextField(
                         decoration: InputDecoration(labelText: Translations.text('description')),
                         onChanged: (v) => subtitle = v,
+                      ),
+                      DropdownButton<IconData>(
+                        value: icon,
+                        items: usedIcons.map((ic) => DropdownMenuItem(
+                          value: ic,
+                          child: Icon(ic),
+                        )).toList(),
+                        onChanged: (i) => icon = i ?? usedIcons[0],
                       ),
                     ],
                   ),
@@ -241,6 +250,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                   onChanged: (v) => subtitle = v,
                                 ),
                                 // Du kan legge til dropdowns for farge og ikon her
+                                DropdownButton<IconData>(
+                                  value: icon,
+                                  items: usedIcons.map((ic) => DropdownMenuItem(
+                                    value: ic,
+                                    child: Icon(ic),
+                                  )).toList(),
+                                  onChanged: (i) => icon = i ?? usedIcons[0],
+                                ),
                               ],
                             ),
                           ),
