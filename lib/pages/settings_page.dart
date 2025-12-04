@@ -121,7 +121,7 @@ class _SettingsPageState extends State<SettingsPage> {
               leading: const Icon(Icons.info_outline),
               title: Text(Translations.text('about')),
               subtitle: Text(
-                'HabitNord v1.0.0 \n© ${DateTime.now().year} David',
+                'HabitNord v0.0.2 \n© ${DateTime.now().year} David',
               ),
               onTap: () {},
             ),
