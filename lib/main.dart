@@ -137,44 +137,44 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       habits = [
         {
-          'color': Colors.purple[400]!,
+          'color': Colors.purple[400]!.toARGB32(),
           'icon': Icons.self_improvement.codePoint,
           'title': 'Meditation',
           'subtitle': 'Meditate for 10 minutes',
           'checked': true,
-          'heatmapColor': Colors.purpleAccent.value,
+          'heatmapColor': Colors.purpleAccent.toARGB32(),
         },
         {
-          'color': Colors.amber[700]!,
+          'color': Colors.amber[700]!.toARGB32(),
           'icon': Icons.code.codePoint,
           'title': 'Code Daily',
           'subtitle': 'Write code for at least 1 hour',
           'checked': true,
-          'heatmapColor': Colors.amberAccent.value,
+          'heatmapColor': Colors.amberAccent.toARGB32(),
         },
         {
-          'color': Colors.blue[400]!,
+          'color': Colors.blue[400]!.toARGB32(),
           'icon': Icons.music_note.codePoint,
           'title': 'Play Drums',
           'subtitle': 'Exercise drumming for at least 30 minutes',
           'checked': true,
-          'heatmapColor': Colors.blueAccent.value,
+          'heatmapColor': Colors.blueAccent.toARGB32(),
         },
         {
-          'color': Colors.green[700]!,
+          'color': Colors.green[700]!.toARGB32(),
           'icon': Icons.directions_run.codePoint,
           'title': 'Running',
           'subtitle': 'Go for a jog every other day',
           'checked': true,
-          'heatmapColor': Colors.greenAccent.value,
+          'heatmapColor': Colors.greenAccent.toARGB32(),
         },
         {
-          'color': Colors.pink[400]!,
+          'color': Colors.pink[400]!.toARGB32(),
           'icon': Icons.coffee.codePoint,
           'title': 'Limit Coffee Intake',
           'subtitle': 'Drink a maximum of two cups a day',
           'checked': true,
-          'heatmapColor': Colors.pinkAccent.value,
+          'heatmapColor': Colors.pinkAccent.toARGB32(),
         },
       ];
       await _saveHabits();
@@ -187,7 +187,10 @@ class _HomeScreenState extends State<HomeScreen> {
       habits
           .map(
             (h) => {
-              'color': (h['color'] as Color).value,
+              'color':
+                  h['color'] is Color
+                      ? (h['color'] as Color).toARGB32()
+                      : h['color'],
               'icon':
                   (h['icon'] is IconData)
                       ? (h['icon'] as IconData).codePoint
@@ -195,7 +198,10 @@ class _HomeScreenState extends State<HomeScreen> {
               'title': h['title'],
               'subtitle': h['subtitle'],
               'checked': h['checked'],
-              'heatmapColor': (h['heatmapColor'] as Color).value,
+              'heatmapColor':
+                  h['heatmapColor'] is Color
+                      ? (h['heatmapColor'] as Color).toARGB32()
+                      : h['heatmapColor'],
             },
           )
           .toList(),
@@ -402,7 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color:
                   habit['color'] is Color
                       ? habit['color']
-                      : Color(habit['color']),
+                      : Color(habit['color'] as int),
               icon:
                   habit['icon'] is IconData
                       ? habit['icon']
@@ -413,7 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
               heatmapColor:
                   habit['heatmapColor'] is Color
                       ? habit['heatmapColor']
-                      : Color(habit['heatmapColor']),
+                      : Color(habit['heatmapColor'] as int),
               onCheck: (val) {
                 setState(() {
                   habits[index]['checked'] = val;
@@ -426,8 +432,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addHabit,
-        child: const Icon(Icons.add),
         tooltip: 'Add Habit',
+        child: const Icon(Icons.add),
       ),
     );
   }
