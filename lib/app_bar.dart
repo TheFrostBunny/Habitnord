@@ -29,22 +29,25 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       titleSpacing: 0,
       title: Row(
         children: [
-          GestureDetector(
-            onTap: onLeadingTap,
-            child: Container(
-              width: 36,
-              height: 36,
-              margin: const EdgeInsets.only(left: 16, right: 12),
-              decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: borderColor),
-              ),
-              alignment: Alignment.center,
-              child: Icon(
-                leadingIcon,
-                size: 18,
-                color: isDark ? Colors.white : Colors.black87,
+          Tooltip(
+            message: 'Innstillinger',
+            child: GestureDetector(
+              onTap: onLeadingTap,
+              child: Container(
+                width: 48,
+                height: 48,
+                margin: const EdgeInsets.only(left: 16, right: 12),
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: borderColor),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  leadingIcon,
+                  size: 28,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
               ),
             ),
           ),

@@ -7,25 +7,6 @@ import 'theme_provider.dart';
 import 'home_screen.dart';
 import 'hooks/translations.dart';
 
-// List all icons used dynamically so Flutter includes them in the build
-final Set<IconData> usedIcons = {
-  Icons.star,
-  Icons.self_improvement,
-  Icons.code,
-  Icons.music_note,
-  Icons.directions_run,
-  Icons.coffee,
-  Icons.book,
-  Icons.fitness_center,
-  Icons.fastfood,
-  Icons.nightlight_round,
-  Icons.water_drop,
-  Icons.sunny,
-  Icons.check_circle,
-  Icons.timer,
-  Icons.directions_bike,
-  Icons.spa,
-};
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
