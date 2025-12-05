@@ -128,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     return Scaffold(
       appBar: CustomAppBar(
-        title: Translations.text('app_title'),
+        title: 'HabitNord',
         leadingIcon: Icons.settings,
         onLeadingTap: () async {
           await Navigator.of(context).push(
