@@ -69,10 +69,12 @@ class _HomeScreenState extends State<HomeScreen> {
     await habitStorage.saveHabits(habits);
     // Lagre habitDates også
     // Konverter habitDates til en serialiserbar form
-    final datesMap = habitDates.map((key, value) => MapEntry(
-      key.toString(),
-      value.map((d) => d.toIso8601String()).toList(),
-    ));
+    final datesMap = habitDates.map(
+      (key, value) => MapEntry(
+        key.toString(),
+        value.map((d) => d.toIso8601String()).toList(),
+      ),
+    );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('habitDates', jsonEncode(datesMap));
   }
@@ -82,10 +84,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final datesJson = prefs.getString('habitDates');
     if (datesJson != null) {
       final decoded = jsonDecode(datesJson) as Map<String, dynamic>;
-      habitDates = decoded.map((key, value) => MapEntry(
-        int.parse(key),
-        (value as List).map((s) => DateTime.parse(s)).toList(),
-      ));
+      habitDates = decoded.map(
+        (key, value) => MapEntry(
+          int.parse(key),
+          (value as List).map((s) => DateTime.parse(s)).toList(),
+        ),
+      );
     }
   }
 
@@ -96,14 +100,22 @@ class _HomeScreenState extends State<HomeScreen> {
       habits[index]['checked'] = !(habits[index]['checked'] as bool);
       habitDates.putIfAbsent(index, () => []);
       if (habits[index]['checked']) {
-        final alreadyLogged = habitDates[index]!.any((d) =>
-          d.year == todayDate.year && d.month == todayDate.month && d.day == todayDate.day);
+        final alreadyLogged = habitDates[index]!.any(
+          (d) =>
+              d.year == todayDate.year &&
+              d.month == todayDate.month &&
+              d.day == todayDate.day,
+        );
         if (!alreadyLogged) {
           habitDates[index]!.add(todayDate);
         }
       } else {
-        habitDates[index]!.removeWhere((d) =>
-          d.year == todayDate.year && d.month == todayDate.month && d.day == todayDate.day);
+        habitDates[index]!.removeWhere(
+          (d) =>
+              d.year == todayDate.year &&
+              d.month == todayDate.month &&
+              d.day == todayDate.day,
+        );
       }
     });
     _saveHabits();
@@ -121,12 +133,21 @@ class _HomeScreenState extends State<HomeScreen> {
         onLeadingTap: () async {
           await Navigator.of(context).push(
             PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => SettingsPage(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              pageBuilder:
+                  (context, animation, secondaryAnimation) => SettingsPage(),
+              transitionsBuilder: (
+                context,
+                animation,
+                secondaryAnimation,
+                child,
+              ) {
                 const begin = Offset(0.0, 1.0);
                 const end = Offset.zero;
                 const curve = Curves.ease;
-                final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                final tween = Tween(
+                  begin: begin,
+                  end: end,
+                ).chain(CurveTween(curve: curve));
                 return SlideTransition(
                   position: animation.drive(tween),
                   child: child,
@@ -142,47 +163,70 @@ class _HomeScreenState extends State<HomeScreen> {
           String title = '';
           String subtitle = '';
           Color color = Colors.blue;
-          IconData icon = Icons.star;
+          int iconIndex = 0;
           final result = await showDialog<Map<String, dynamic>>(
             context: context,
             builder: (context) {
-              return AlertDialog(
-                title: Text(Translations.text('add_habit')),
-                content: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      TextField(
-                        decoration: InputDecoration(labelText: Translations.text('title')),
-                        onChanged: (v) => title = v,
+              return StatefulBuilder(
+                builder: (context, setState) {
+                  return AlertDialog(
+                    title: Text(Translations.text('add_habit')),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: Translations.text('title'),
+                            ),
+                            onChanged: (v) => title = v,
+                          ),
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: Translations.text('description'),
+                            ),
+                            onChanged: (v) => subtitle = v,
+                          ),
+                          DropdownButton<int>(
+                            value: iconIndex,
+                            items: List.generate(
+                              usedIcons.length,
+                              (i) => DropdownMenuItem(
+                                value: i,
+                                child: Icon(usedIcons[i]),
+                              ),
+                            ),
+                            onChanged:
+                                (i) => setState(() {
+                                  iconIndex = i ?? 0;
+                                }),
+                          ),
+                        ],
                       ),
-                      TextField(
-                        decoration: InputDecoration(labelText: Translations.text('description')),
-                        onChanged: (v) => subtitle = v,
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (title.isNotEmpty && subtitle.isNotEmpty) {
+                            Navigator.of(context).pop({
+                              'color': color,
+                              'icon': usedIcons[iconIndex],
+                              'iconIndex': iconIndex,
+                              'title': title,
+                              'subtitle': subtitle,
+                              'checked': false,
+                              'heatmapColor': color,
+                            });
+                          }
+                        },
+                        child: const Text('Add'),
                       ),
                     ],
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (title.isNotEmpty && subtitle.isNotEmpty) {
-                        Navigator.of(context).pop({
-                          'color': color,
-                          'icon': icon,
-                          'title': title,
-                          'subtitle': subtitle,
-                          'checked': false,
-                          'heatmapColor': color,
-                        });
-                      }
-                    },
-                    child: const Text('Add'),
-                  ),
-                ],
+                  );
+                },
               );
             },
           );
@@ -196,89 +240,121 @@ class _HomeScreenState extends State<HomeScreen> {
         tooltip: 'Legg til habit',
         child: const Icon(Icons.add),
       ),
-      body: habits.isEmpty
-          ? const Center(child: Text('Ingen vaner funnet'))
-          : ListView.builder(
-              itemCount: habits.length,
-              itemBuilder: (context, index) {
-                final habit = habits[index];
-                return HabitCard(
-                  title: habit['title'],
-                  subtitle: habit['subtitle'],
-                  color: habit['color'],
-                  icon: habit['icon'],
-                  checked: habit['checked'],
-                  heatmapColor: habit['heatmapColor'],
-                  onCheck: (val) => _toggleHabitChecked(index),
-                  onDelete: () async {
-                    setState(() {
-                      habits.removeAt(index);
-                      habitDates.remove(index);
-                    });
-                    await _saveHabits();
-                  },
-                  onEdit: () async {
-                    String title = habit['title'];
-                    String subtitle = habit['subtitle'];
-                    Color color = habit['color'];
-                    IconData icon = habit['icon'];
-                    final result = await showDialog<Map<String, dynamic>>(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('Rediger vane'),
-                          content: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                TextField(
-                                  decoration: const InputDecoration(labelText: 'Title'),
-                                  controller: TextEditingController(text: title),
-                                  onChanged: (v) => title = v,
-                                ),
-                                TextField(
-                                  decoration: const InputDecoration(labelText: 'Description'),
-                                  controller: TextEditingController(text: subtitle),
-                                  onChanged: (v) => subtitle = v,
-                                ),
-                                // Du kan legge til dropdowns for farge og ikon her
-                              ],
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Avbryt'),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                if (title.isNotEmpty && subtitle.isNotEmpty) {
-                                  Navigator.of(context).pop({
-                                    'color': color,
-                                    'icon': icon,
-                                    'title': title,
-                                    'subtitle': subtitle,
-                                    'checked': habit['checked'],
-                                    'heatmapColor': color,
-                                  });
-                                }
-                              },
-                              child: const Text('Lagre'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                    if (result != null) {
+      body:
+          habits.isEmpty
+              ? const Center(child: Text('Ingen vaner funnet'))
+              : ListView.builder(
+                itemCount: habits.length,
+                itemBuilder: (context, index) {
+                  final habit = habits[index];
+                  return HabitCard(
+                    title: habit['title'],
+                    subtitle: habit['subtitle'],
+                    color: habit['color'],
+                    icon: habit['icon'],
+                    checked: habit['checked'],
+                    heatmapColor: habit['heatmapColor'],
+                    onCheck: (val) => _toggleHabitChecked(index),
+                    onDelete: () async {
                       setState(() {
-                        habits[index] = result;
+                        habits.removeAt(index);
+                        habitDates.remove(index);
                       });
                       await _saveHabits();
-                    }
-                  },
-                  dates: habitDates[index] ?? [],
-                );
-              },
-            ),
+                    },
+                    onEdit: () async {
+                      String title = habit['title'];
+                      String subtitle = habit['subtitle'];
+                      Color color = habit['color'];
+                      int iconIndex =
+                          habit.containsKey('iconIndex')
+                              ? habit['iconIndex']
+                              : usedIcons.indexOf(habit['icon']);
+                      final result = await showDialog<Map<String, dynamic>>(
+                        context: context,
+                        builder: (context) {
+                          return StatefulBuilder(
+                            builder: (context, setState) {
+                              return AlertDialog(
+                                title: const Text('Rediger vane'),
+                                content: SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      TextField(
+                                        decoration: const InputDecoration(
+                                          labelText: 'Title',
+                                        ),
+                                        controller: TextEditingController(
+                                          text: title,
+                                        ),
+                                        onChanged: (v) => title = v,
+                                      ),
+                                      TextField(
+                                        decoration: const InputDecoration(
+                                          labelText: 'Description',
+                                        ),
+                                        controller: TextEditingController(
+                                          text: subtitle,
+                                        ),
+                                        onChanged: (v) => subtitle = v,
+                                      ),
+                                      DropdownButton<int>(
+                                        value: iconIndex,
+                                        items: List.generate(
+                                          usedIcons.length,
+                                          (i) => DropdownMenuItem(
+                                            value: i,
+                                            child: Icon(usedIcons[i]),
+                                          ),
+                                        ),
+                                        onChanged:
+                                            (i) => setState(() {
+                                              iconIndex = i ?? 0;
+                                            }),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.of(context).pop(),
+                                    child: const Text('Avbryt'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      if (title.isNotEmpty &&
+                                          subtitle.isNotEmpty) {
+                                        Navigator.of(context).pop({
+                                          'color': color,
+                                          'icon': usedIcons[iconIndex],
+                                          'iconIndex': iconIndex,
+                                          'title': title,
+                                          'subtitle': subtitle,
+                                          'checked': habit['checked'],
+                                          'heatmapColor': color,
+                                        });
+                                      }
+                                    },
+                                    child: const Text('Lagre'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      );
+                      if (result != null) {
+                        setState(() {
+                          habits[index] = result;
+                        });
+                        await _saveHabits();
+                      }
+                    },
+                    dates: habitDates[index] ?? [],
+                  );
+                },
+              ),
     );
   }
 }

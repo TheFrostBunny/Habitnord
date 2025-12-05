@@ -120,7 +120,9 @@ class _SettingsPageState extends State<SettingsPage> {
             ListTile(
               leading: const Icon(Icons.info_outline),
               title: Text(Translations.text('about')),
-              subtitle: const Text('HabitNord v0.0.1'),
+              subtitle: Text(
+                'HabitNord v0.0.2 \n© ${DateTime.now().year} David',
+              ),
               onTap: () {},
             ),
           ],
