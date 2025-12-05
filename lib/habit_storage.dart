@@ -50,14 +50,32 @@ class HabitStorage {
   }
 
   Future<void> saveHabits(List<Map<String, dynamic>> habits) async {
-    final encoded = jsonEncode(habits.map((h) => {
-      'color': h['color'] is Color ? (h['color'] as Color).value : h['color'],
-      'iconIndex': usedIcons.indexOf(h['icon']),
-      'title': h['title'],
-      'subtitle': h['subtitle'],
-      'checked': h['checked'],
-      'heatmapColor': h['heatmapColor'] is Color ? (h['heatmapColor'] as Color).value : h['heatmapColor'],
-    }).toList());
+    final encoded = jsonEncode(
+      habits
+          .map(
+            (h) => {
+              'color':
+                  h['color'] is Color
+                      ? ((h['color'] as Color).a.toInt() << 24) |
+                          ((h['color'] as Color).r.toInt() << 16) |
+                          ((h['color'] as Color).g.toInt() << 8) |
+                          (h['color'] as Color).b.toInt()
+                      : h['color'],
+              'iconIndex': usedIcons.indexOf(h['icon']),
+              'title': h['title'],
+              'subtitle': h['subtitle'],
+              'checked': h['checked'],
+              'heatmapColor':
+                  h['heatmapColor'] is Color
+                      ? ((h['heatmapColor'] as Color).a.toInt() << 24) |
+                          ((h['heatmapColor'] as Color).r.toInt() << 16) |
+                          ((h['heatmapColor'] as Color).g.toInt() << 8) |
+                          (h['heatmapColor'] as Color).b.toInt()
+                      : h['heatmapColor'],
+            },
+          )
+          .toList(),
+    );
     await habitsFile.writeAsString(encoded);
   }
 }

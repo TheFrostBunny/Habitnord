@@ -20,22 +20,21 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const HabitNordRoot());
-    expect(find.text('HabitNord'), findsOneWidget);
+    expect(find.byKey(const Key('appBarTitle')), findsOneWidget);
 
     // Open add habit dialog
     await tester.tap(find.byIcon(Icons.add));
     await tester.pumpAndSettle();
-    expect(find.text('Add Habit'), findsOneWidget);
+    expect(find.text(Translations.text('add_habit')), findsOneWidget);
   });
   testWidgets('App renders HabitNord home', (WidgetTester tester) async {
     await tester.pumpWidget(const HabitNordRoot());
 
-    // Verify app bar title exists
-    expect(find.text('HabitNord'), findsOneWidget);
+    expect(find.byKey(const Key('appBarTitle')), findsOneWidget);
 
     // Add habit dialog opens
     await tester.tap(find.byIcon(Icons.add));
     await tester.pumpAndSettle();
-    expect(find.text('Add Habit'), findsOneWidget);
+    expect(find.text(Translations.text('add_habit')), findsOneWidget);
   });
 }

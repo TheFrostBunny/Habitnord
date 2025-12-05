@@ -92,10 +92,7 @@ class HabitCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
               child: Text(
-                'Utført på: ' +
-                    dates
-                        .map((d) => '${d.day}.${d.month}.${d.year}')
-                        .join(', '),
+                'Utført på: ${dates.map((d) => '${d.day}.${d.month}.${d.year}').join(', ')}',
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ),
